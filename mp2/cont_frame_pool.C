@@ -132,8 +132,40 @@ ContFramePool::ContFramePool(unsigned long _base_frame_no,
                              unsigned long _info_frame_no,
                              unsigned long _n_info_frames)
 {
-    // TODO: IMPLEMENTATION NEEEDED!
-    assert(false);
+    base_frame_no = _base_frame_no;
+    n_frames = _n_frames;
+    info_frame_no = _info_frame_no;
+    n_info_frames = _n_info_frames;
+    nFreeFrames = n_frames;
+
+    if (info_frame_no == 0) {
+        bitmap = (unsigned char *) (base_frame_no * FRAME_SIZE);
+    } else {
+        bitmap = (unsigned char *) (info_frame_no * FRAME_SIZE);
+    }
+    // Number of frames must be "fill" the bitmap!
+    assert ((n_frames % 8 ) == 0);
+    
+    
+    // Everything ok. Proceed to mark all bits in the bitmap
+    for(int i=0; i*8 < n_frames; i++) {
+        bitmap[i] = 0xFF;
+    }
+
+    if (info_frame_no == 0) {
+        unsigned long remaining_info_frames = n_info_frames;
+        int counter = 0;
+        while (remaining_info_frames > 0) {
+            for (int i=0; i < 8; i++) {
+                if (remaining_info_frames == 0) {break;}
+                bitmap[counter*8 + i] = (0x7F >> i);
+            }
+            remaining_info_frames = remaining_info_frames - 8;
+            counter++;
+        }
+    }
+
+    Console::puts("Cont Frame Pool initialized\n");
 }
 
 unsigned long ContFramePool::get_frames(unsigned int _n_frames)

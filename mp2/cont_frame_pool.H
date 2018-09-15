@@ -42,6 +42,16 @@ class ContFramePool {
     
 private:
     /* -- DEFINE YOUR CONT FRAME POOL DATA STRUCTURE(s) HERE. */
+    unsigned long base_frame_no;      // Frame number where this frame pool starts
+    unsigned long n_frames;           // Size of the frame pool
+    unsigned long info_frame_no;      // The location of the first info frame
+    unsigned long n_info_frames;      // The number of frames (contiguous) storing management info
+    unsigned long nFreeFrames;        // Number of frames left to be allocated
+
+    // The idea is to maintain one bit from the front to store free/not free information
+    // and another bit from the back (last bit of the last info_frame) for head information 
+    // headmap will be implemented in the next commit
+    unsigned char * bitmap;
     
 public:
 
