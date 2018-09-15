@@ -48,10 +48,11 @@ private:
     unsigned long n_info_frames;      // The number of frames (contiguous) storing management info
     unsigned long n_free_frames;        // Number of frames left to be allocated
 
-    // The idea is to maintain one bit from the front to store free/not free information
-    // and another bit from the back (last bit of the last info_frame) for head information 
-    // headmap will be implemented in the next commit
     unsigned char * bitmap;
+    unsigned char * headmap;
+  
+    void release_frames(unsigned long _base,
+                        unsigned long _n_frames);
     
 public:
 

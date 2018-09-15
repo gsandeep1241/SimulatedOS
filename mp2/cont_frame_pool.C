@@ -152,8 +152,10 @@ ContFramePool::ContFramePool(unsigned long _base_frame_no,
 
     if (info_frame_no == 0) {
         bitmap = (unsigned char *) (base_frame_no * FRAME_SIZE);
+        headmap = (unsigned char *) (base_frame_no * FRAME_SIZE + (n_frames/8));
     } else {
         bitmap = (unsigned char *) (info_frame_no * FRAME_SIZE);
+        headmap = (unsigned char *) (info_frame_no * FRAME_SIZE + (n_frames/8));
     }
     // Number of frames must be "fill" the bitmap!
     assert ((n_frames % 8 ) == 0);
@@ -231,6 +233,7 @@ unsigned long ContFramePool::get_frames(unsigned int _n_frames)
                    }
                    n_free_frames -= _n_frames;
                    unsigned long ans_frame_no = base_frame_no + i*8 + j;
+                   headmap[i] ^= num;
                    return ans_frame_no;
                }
             }
@@ -243,6 +246,7 @@ void ContFramePool::mark_inaccessible(unsigned long _base_frame_no,
                                       unsigned long _n_frames)
 {
     int big = (_base_frame_no-base_frame_no)/8; int small = (_base_frame_no-base_frame_no)%8;
+    headmap[big] ^= (0x80 >> small);
     long req = _n_frames;
     while (req > 0) {
         if (small == 8) {
@@ -262,6 +266,21 @@ void ContFramePool::release_frames(unsigned long _first_frame_no)
     }
 
     ContFramePool pool(temp->base, temp->n_frames, temp->info_frame_no, temp->n_info_frames); 
+    pool.release_frames(temp->base, temp->n_frames);
+}
+
+void ContFramePool::release_frames(unsigned long _base_frame_no, unsigned long _n_frames) {
+    int big = (_base_frame_no-base_frame_no)/8; int small = (_base_frame_no-base_frame_no)%8;
+    headmap[big] ^= (0x80 >> small);
+    long req = _n_frames;
+    while (req > 0) {
+        if (small == 8) {
+               big++; small = 0; continue;
+         }
+         int temp = (0x80 >> small);
+         bitmap[big] ^= temp; req--; small++;
+    }
+    n_free_frames += _n_frames;
 }
 
 unsigned long ContFramePool::needed_info_frames(unsigned long _n_frames)
