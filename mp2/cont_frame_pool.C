@@ -136,7 +136,7 @@ ContFramePool::ContFramePool(unsigned long _base_frame_no,
     n_frames = _n_frames;
     info_frame_no = _info_frame_no;
     n_info_frames = _n_info_frames;
-    nFreeFrames = n_frames;
+    n_free_frames = n_frames;
 
     if (info_frame_no == 0) {
         bitmap = (unsigned char *) (base_frame_no * FRAME_SIZE);
@@ -164,14 +164,14 @@ ContFramePool::ContFramePool(unsigned long _base_frame_no,
             counter++;
         }
     }
+    n_free_frames -= n_info_frames;
 
     Console::puts("Cont Frame Pool initialized\n");
 }
 
 unsigned long ContFramePool::get_frames(unsigned int _n_frames)
 {
-    // TODO: IMPLEMENTATION NEEEDED!
-    assert(false);
+    
 }
 
 void ContFramePool::mark_inaccessible(unsigned long _base_frame_no,
