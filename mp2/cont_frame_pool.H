@@ -50,9 +50,10 @@ private:
 
     unsigned char * bitmap;
     unsigned char * headmap;
+
+    ContFramePool* next;
   
-    void release_frames(unsigned long _base,
-                        unsigned long _n_frames);
+    void rf(unsigned long _base);
     
 public:
 

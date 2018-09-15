@@ -138,6 +138,7 @@ struct Node
 };
 
 static Node* node = NULL;
+static ContFramePool* pool = NULL;
 
 ContFramePool::ContFramePool(unsigned long _base_frame_no,
                              unsigned long _n_frames,
@@ -164,6 +165,7 @@ ContFramePool::ContFramePool(unsigned long _base_frame_no,
     // Everything ok. Proceed to mark all bits in the bitmap
     for(int i=0; i*8 < n_frames; i++) {
         bitmap[i] = 0xFF;
+        headmap[i] = 0xFF;
     }
 
     if (info_frame_no == 0) {
@@ -180,23 +182,16 @@ ContFramePool::ContFramePool(unsigned long _base_frame_no,
     }
     n_free_frames -= n_info_frames;
 
-    Node* new_node;
-    new_node->base = base_frame_no;
-    new_node->n_frames = n_frames;
-    new_node->info_frame_no = info_frame_no;
-    new_node->n_info_frames = n_info_frames;
-    new_node->next = NULL;    
-
-    if (node == NULL) {
-        node = new_node;
+    if (pool == NULL) {
+        pool = this;
     } else {
-      Node* prev = NULL; Node* curr = node;
-      while(curr != NULL && curr->base < new_node->base) {
+       ContFramePool* prev = NULL; ContFramePool* curr = pool;
+       while(curr != NULL && curr->base_frame_no < base_frame_no) {
          prev = curr;
          curr = curr->next;
       }
-      prev->next = new_node;
-      new_node->next = curr;
+      prev->next = this;
+      this->next = curr;
     }
     Console::puts("Cont Frame Pool initialized\n");
 }
@@ -216,14 +211,16 @@ unsigned long ContFramePool::get_frames(unsigned int _n_frames)
                        big++; small = 0; continue;
                    }
                    int temp = (0x80 >> small);
-                   if ((bitmap[big] & (temp) != 0)) {
+                   int k = (bitmap[big] & (temp));
+                   if ((bitmap[big] & (temp)) != 0) {
                        req--; small++;
+                       if (req == 0) {break;}
                    } else {
                       break;
                    }       
                }
                if (req == 0) {
-                   big = i; small = j;
+                   big = i; small = j; req = _n_frames;
                    while (req > 0) {
                        if (small == 8) {
                            big++; small = 0; continue;
@@ -260,27 +257,41 @@ void ContFramePool::mark_inaccessible(unsigned long _base_frame_no,
 
 void ContFramePool::release_frames(unsigned long _first_frame_no)
 {
-    Node* temp = node;
-    while(temp != NULL && temp->base+temp->n_frames < _first_frame_no) {
+    ContFramePool* temp = pool;
+    while(temp != NULL && temp->base_frame_no+temp->n_frames < _first_frame_no) {
       temp = temp->next;
     }
-
-    ContFramePool pool(temp->base, temp->n_frames, temp->info_frame_no, temp->n_info_frames); 
-    pool.release_frames(temp->base, temp->n_frames);
+    temp->rf(_first_frame_no);
 }
 
-void ContFramePool::release_frames(unsigned long _base_frame_no, unsigned long _n_frames) {
+void ContFramePool::rf(unsigned long _base_frame_no) {
+    Console::puts("Inside rf\n");
     int big = (_base_frame_no-base_frame_no)/8; int small = (_base_frame_no-base_frame_no)%8;
     headmap[big] ^= (0x80 >> small);
-    long req = _n_frames;
-    while (req > 0) {
+    
+   unsigned long num_rel_frames = 0;
+    while (true) {
         if (small == 8) {
                big++; small = 0; continue;
-         }
-         int temp = (0x80 >> small);
-         bitmap[big] ^= temp; req--; small++;
+        }
+        if (big >= n_frames) {
+          // Handle negative case here
+          return;
+        }
+        int temp = (0x80 >> small);
+        int curr_val1 = (headmap[big] & (temp));
+        int curr_val2 = (bitmap[big] & temp);
+        if (curr_val1 == 0 || curr_val2 != 0) {
+            break;
+        }
+        bitmap[big] ^= temp; small++;
+        num_rel_frames++;
     }
-    n_free_frames += _n_frames;
+
+    Console::puts("Number of released frames: ");
+    Console::puti(num_rel_frames);
+    Console::puts("\n");
+    n_free_frames += num_rel_frames;
 }
 
 unsigned long ContFramePool::needed_info_frames(unsigned long _n_frames)
