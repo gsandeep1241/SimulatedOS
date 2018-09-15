@@ -127,6 +127,18 @@
 /* METHODS FOR CLASS   C o n t F r a m e P o o l */
 /*--------------------------------------------------------------------------*/
 
+struct Node
+{
+  public:
+    Node* next;
+    unsigned long base;
+    unsigned long n_frames;
+    unsigned long info_frame_no;
+    unsigned long n_info_frames;
+};
+
+static Node* node = NULL;
+
 ContFramePool::ContFramePool(unsigned long _base_frame_no,
                              unsigned long _n_frames,
                              unsigned long _info_frame_no,
@@ -166,6 +178,24 @@ ContFramePool::ContFramePool(unsigned long _base_frame_no,
     }
     n_free_frames -= n_info_frames;
 
+    Node* new_node;
+    new_node->base = base_frame_no;
+    new_node->n_frames = n_frames;
+    new_node->info_frame_no = info_frame_no;
+    new_node->n_info_frames = n_info_frames;
+    new_node->next = NULL;    
+
+    if (node == NULL) {
+        node = new_node;
+    } else {
+      Node* prev = NULL; Node* curr = node;
+      while(curr != NULL && curr->base < new_node->base) {
+         prev = curr;
+         curr = curr->next;
+      }
+      prev->next = new_node;
+      new_node->next = curr;
+    }
     Console::puts("Cont Frame Pool initialized\n");
 }
 
@@ -200,7 +230,8 @@ unsigned long ContFramePool::get_frames(unsigned int _n_frames)
                        bitmap[big] ^= temp; req--; small++;
                    }
                    n_free_frames -= _n_frames;
-                   return base_frame_no + i*8 + j;
+                   unsigned long ans_frame_no = base_frame_no + i*8 + j;
+                   return ans_frame_no;
                }
             }
         }
@@ -225,8 +256,12 @@ void ContFramePool::mark_inaccessible(unsigned long _base_frame_no,
 
 void ContFramePool::release_frames(unsigned long _first_frame_no)
 {
-    // TODO: IMPLEMENTATION NEEEDED!
-    assert(false);
+    Node* temp = node;
+    while(temp != NULL && temp->base+temp->n_frames < _first_frame_no) {
+      temp = temp->next;
+    }
+
+    ContFramePool pool(temp->base, temp->n_frames, temp->info_frame_no, temp->n_info_frames); 
 }
 
 unsigned long ContFramePool::needed_info_frames(unsigned long _n_frames)
