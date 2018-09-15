@@ -158,7 +158,7 @@ ContFramePool::ContFramePool(unsigned long _base_frame_no,
         while (remaining_info_frames > 0) {
             for (int i=0; i < 8; i++) {
                 if (remaining_info_frames == 0) {break;}
-                bitmap[counter*8 + i] = (0x7F >> i);
+                bitmap[counter] = (0x7F >> i);
             }
             remaining_info_frames = remaining_info_frames - 8;
             counter++;
@@ -171,7 +171,41 @@ ContFramePool::ContFramePool(unsigned long _base_frame_no,
 
 unsigned long ContFramePool::get_frames(unsigned int _n_frames)
 {
-    assert(false);    
+    assert(n_free_frames >= _n_frames);
+   
+    unsigned int req = _n_frames;
+    for (int i=0; i < n_frames; i++) {
+        for (int j=0; j < 8; j++) {
+            int num = (0x80 >> j);
+            if ((bitmap[i] & (num)) != 0) {
+               int big = i; int small = j;
+               while (req > 0) {
+                   if (small == 8) {
+                       big++; small = 0; continue;
+                   }
+                   int temp = (0x80 >> small);
+                   if ((bitmap[big] & (temp) != 0)) {
+                       req--; small++;
+                   } else {
+                      break;
+                   }       
+               }
+               if (req == 0) {
+                   big = i; small = j;
+                   while (req > 0) {
+                       if (small == 8) {
+                           big++; small = 0; continue;
+                       }
+                       int temp = (0x80 >> small);
+                       bitmap[big] ^= temp; req--; small++;
+                   }
+                   n_free_frames -= _n_frames;
+                   return base_frame_no + i*8 + j;
+               }
+            }
+        }
+    }
+    return 0;
 }
 
 void ContFramePool::mark_inaccessible(unsigned long _base_frame_no,
