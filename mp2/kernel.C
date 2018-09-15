@@ -67,18 +67,20 @@ int main() {
 
     /* ---- KERNEL POOL -- */
     
-    ContFramePool kernel_mem_pool(KERNEL_POOL_START_FRAME,
+/*    ContFramePool kernel_mem_pool(KERNEL_POOL_START_FRAME,
                                   KERNEL_POOL_SIZE,
                                   0,
                                   0);
     
-
+*/
     /* ---- PROCESS POOL -- */
 
-/*
-    unsigned long n_info_frames = ContFramePool::needed_info_frames(PROCESS_POOL_SIZE);
 
-    unsigned long process_mem_pool_info_frame = kernel_mem_pool.get_frames(n_info_frames);
+    unsigned long n_info_frames = ContFramePool::needed_info_frames(PROCESS_POOL_SIZE);
+    Console::puts("Number of info frames for process_pool_size: ");
+    Console::puti(n_info_frames);
+    Console::puts("\n");
+/*    unsigned long process_mem_pool_info_frame = kernel_mem_pool.get_frames(n_info_frames);
     
     ContFramePool process_mem_pool(PROCESS_POOL_START_FRAME,
                                    PROCESS_POOL_SIZE,
@@ -93,7 +95,7 @@ int main() {
 
     /* -- TEST MEMORY ALLOCATOR */
     
-    test_memory(&kernel_mem_pool, 32);
+//    test_memory(&kernel_mem_pool, 32);
 
     /* ---- Add code here to test the frame pool implementation. */
     

@@ -157,6 +157,13 @@ void ContFramePool::release_frames(unsigned long _first_frame_no)
 
 unsigned long ContFramePool::needed_info_frames(unsigned long _n_frames)
 {
-    // TODO: IMPLEMENTATION NEEEDED!
-    assert(false);
+    // In this implementation, we need 2 bits per frame.
+    // Thus, number of bits = 2*_n_frames;
+    // A frame contains FRAME_SIZE number of bytes..
+    // .. FRAME_SIZE*8 number of bits.
+    // So, number of frames needed = Ceiling((2*_n_frames)/FRAME_SIZE*8)
+    long a = (_n_frames << 1);
+    long b = (FRAME_SIZE << 3);
+
+    return (a%b == 0) ? a/b : (a/b)+1;
 }
