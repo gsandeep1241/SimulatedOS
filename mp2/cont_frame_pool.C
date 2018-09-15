@@ -171,7 +171,7 @@ ContFramePool::ContFramePool(unsigned long _base_frame_no,
 
 unsigned long ContFramePool::get_frames(unsigned int _n_frames)
 {
-    
+    assert(false);    
 }
 
 void ContFramePool::mark_inaccessible(unsigned long _base_frame_no,
