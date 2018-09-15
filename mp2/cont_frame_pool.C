@@ -127,17 +127,6 @@
 /* METHODS FOR CLASS   C o n t F r a m e P o o l */
 /*--------------------------------------------------------------------------*/
 
-struct Node
-{
-  public:
-    Node* next;
-    unsigned long base;
-    unsigned long n_frames;
-    unsigned long info_frame_no;
-    unsigned long n_info_frames;
-};
-
-static Node* node = NULL;
 static ContFramePool* pool = NULL;
 
 ContFramePool::ContFramePool(unsigned long _base_frame_no,
@@ -310,11 +299,15 @@ void ContFramePool::release_frames(unsigned long _first_frame_no)
 
 // private
 void ContFramePool::rf(unsigned long _base_frame_no) {
+    // Variable "big" represents the byte number
+    // Variable "small" represents the bit within the byte
     int big = (_base_frame_no-base_frame_no)/8; int small = (_base_frame_no-base_frame_no)%8;
     if ((headmap[big] & (0x80 >> small)) != 0) {
        // The given frame is not allocated. 
        assert(false); return;
     }
+
+    // Unallocate the head
     headmap[big] ^= (0x80 >> small);
     
    unsigned long num_rel_frames = 0;
@@ -323,23 +316,19 @@ void ContFramePool::rf(unsigned long _base_frame_no) {
                big++; small = 0; continue;
         }
         if (big >= n_frames) {
-          // The given frame is not allocated. 
-          assert(false); return;
-          return;
+           // That's it. We have reached the last frame.
+           break;
         }
         int temp = (0x80 >> small);
         int curr_val1 = (headmap[big] & (temp));
         int curr_val2 = (bitmap[big] & temp);
         if (curr_val1 == 0 || curr_val2 != 0) {
+            // That's it. A new head or another free frame has been found.
             break;
         }
         bitmap[big] ^= temp; small++;
         num_rel_frames++;
     }
-
-    Console::puts("Number of released frames: ");
-    Console::puti(num_rel_frames);
-    Console::puts("\n");
     n_free_frames += num_rel_frames;
 }
 
