@@ -211,8 +211,16 @@ unsigned long ContFramePool::get_frames(unsigned int _n_frames)
 void ContFramePool::mark_inaccessible(unsigned long _base_frame_no,
                                       unsigned long _n_frames)
 {
-    // TODO: IMPLEMENTATION NEEEDED!
-    assert(false);
+    int big = (_base_frame_no-base_frame_no)/8; int small = (_base_frame_no-base_frame_no)%8;
+    long req = _n_frames;
+    while (req > 0) {
+        if (small == 8) {
+               big++; small = 0; continue;
+         }
+         int temp = (0x80 >> small);
+         bitmap[big] ^= temp; req--; small++;
+    }
+    n_free_frames -= _n_frames;
 }
 
 void ContFramePool::release_frames(unsigned long _first_frame_no)
