@@ -145,6 +145,10 @@ ContFramePool::ContFramePool(unsigned long _base_frame_no,
                              unsigned long _info_frame_no,
                              unsigned long _n_info_frames)
 {
+    // Number of frames must be "fill" the bitmap!
+    assert ((_n_frames % 8 ) == 0);
+    assert(_n_frames <= FRAME_SIZE * 4);
+    
     base_frame_no = _base_frame_no;
     n_frames = _n_frames;
     info_frame_no = _info_frame_no;
@@ -158,11 +162,9 @@ ContFramePool::ContFramePool(unsigned long _base_frame_no,
         bitmap = (unsigned char *) (info_frame_no * FRAME_SIZE);
         headmap = (unsigned char *) (info_frame_no * FRAME_SIZE + (n_frames/8));
     }
-    // Number of frames must be "fill" the bitmap!
-    assert ((n_frames % 8 ) == 0);
     
     
-    // Everything ok. Proceed to mark all bits in the bitmap
+    // Everything ok. Proceed to mark all bits in the bitmap and headmap
     for(int i=0; i*8 < n_frames; i++) {
         bitmap[i] = 0xFF;
         headmap[i] = 0xFF;
@@ -175,8 +177,11 @@ ContFramePool::ContFramePool(unsigned long _base_frame_no,
             for (int i=0; i < 8; i++) {
                 if (remaining_info_frames == 0) {break;}
                 bitmap[counter] = (0x7F >> i);
+                if (remaining_info_frames == n_info_frames) {
+                    headmap[counter] = (0x7F >> i);
+                }
+                remaining_info_frames -= 1;
             }
-            remaining_info_frames = remaining_info_frames - 8;
             counter++;
         }
     }
@@ -190,8 +195,13 @@ ContFramePool::ContFramePool(unsigned long _base_frame_no,
          prev = curr;
          curr = curr->next;
       }
-      prev->next = this;
-      this->next = curr;
+      if (prev == NULL) {
+         this->next = curr;
+         pool = this;
+      } else {
+        prev->next = this;
+        this->next = curr;
+      }
     }
     Console::puts("Cont Frame Pool initialized\n");
 }
@@ -199,23 +209,35 @@ ContFramePool::ContFramePool(unsigned long _base_frame_no,
 unsigned long ContFramePool::get_frames(unsigned int _n_frames)
 {
     assert(n_free_frames >= _n_frames);
-   
+  
+    // Variable "big" represents the current byte
+    // Variable "small" represents the bit within the byte
+    // Outer two while loops check for the first occurance of '1'
+    // The first while loop continues from whereever the '1' was found
+    // It looks for _n_frames number of ones.
+    // If not found, we continue our check at the outer loop at the
+    // position where we left off.
     unsigned int req = _n_frames;
-    for (int i=0; i < n_frames; i++) {
-        for (int j=0; j < 8; j++) {
+    int i=0;
+    while(i < n_frames) {
+        int j=0;
+        while (j < 8) {
             int num = (0x80 >> j);
             if ((bitmap[i] & (num)) != 0) {
                int big = i; int small = j;
                while (req > 0) {
+                   if (big >= n_frames) {
+                       return 0;
+                   }
                    if (small == 8) {
                        big++; small = 0; continue;
                    }
                    int temp = (0x80 >> small);
-                   int k = (bitmap[big] & (temp));
                    if ((bitmap[big] & (temp)) != 0) {
                        req--; small++;
                        if (req == 0) {break;}
                    } else {
+                      j = small; i = big; req = _n_frames;
                       break;
                    }       
                }
@@ -233,8 +255,11 @@ unsigned long ContFramePool::get_frames(unsigned int _n_frames)
                    headmap[i] ^= num;
                    return ans_frame_no;
                }
+            } else {
+                j++;
             }
         }
+        i++;
     }
     return 0;
 }
@@ -242,6 +267,14 @@ unsigned long ContFramePool::get_frames(unsigned int _n_frames)
 void ContFramePool::mark_inaccessible(unsigned long _base_frame_no,
                                       unsigned long _n_frames)
 {
+    assert(_base_frame_no >= base_frame_no);
+    assert(_base_frame_no + _n_frames <= base_frame_no + n_frames);
+
+    // Please do not try to mark inaccessible a region that is already allocated.
+    // This code will break for such cases.
+    // I have handled it this way because the return type is void and there is no way for
+    // letting the caller know if he was successful or not.
+    // (of course, I am avoiding assertions and exceptions here)
     int big = (_base_frame_no-base_frame_no)/8; int small = (_base_frame_no-base_frame_no)%8;
     headmap[big] ^= (0x80 >> small);
     long req = _n_frames;
@@ -255,18 +288,33 @@ void ContFramePool::mark_inaccessible(unsigned long _base_frame_no,
     n_free_frames -= _n_frames;
 }
 
+// static
 void ContFramePool::release_frames(unsigned long _first_frame_no)
 {
     ContFramePool* temp = pool;
-    while(temp != NULL && temp->base_frame_no+temp->n_frames < _first_frame_no) {
+    while(temp != NULL && temp->base_frame_no+temp->n_frames <= _first_frame_no) {
       temp = temp->next;
     }
+    
+    if (temp == NULL) { assert(false); }
+    
+    if (temp ->base_frame_no > _first_frame_no) {
+       // the given frame is not part of any framepools
+       assert(false);
+       return;
+      }
+
     temp->rf(_first_frame_no);
 }
 
+
+// private
 void ContFramePool::rf(unsigned long _base_frame_no) {
-    Console::puts("Inside rf\n");
     int big = (_base_frame_no-base_frame_no)/8; int small = (_base_frame_no-base_frame_no)%8;
+    if ((headmap[big] & (0x80 >> small)) != 0) {
+       // The given frame is not allocated. 
+       assert(false); return;
+    }
     headmap[big] ^= (0x80 >> small);
     
    unsigned long num_rel_frames = 0;
@@ -275,7 +323,8 @@ void ContFramePool::rf(unsigned long _base_frame_no) {
                big++; small = 0; continue;
         }
         if (big >= n_frames) {
-          // Handle negative case here
+          // The given frame is not allocated. 
+          assert(false); return;
           return;
         }
         int temp = (0x80 >> small);
