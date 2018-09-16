@@ -63,43 +63,61 @@ int main() {
 
     Console::init();
 
-    /* -- INITIALIZE FRAME POOLS -- */
 
     /* ---- KERNEL POOL -- */
-    
-/*    ContFramePool kernel_mem_pool(KERNEL_POOL_START_FRAME,
+
+
+// /* BLOCK-1    
+   ContFramePool kernel_mem_pool(KERNEL_POOL_START_FRAME,
                                   KERNEL_POOL_SIZE,
                                   0,
                                   0);
-    
-*/
-    /* ---- PROCESS POOL -- */
+// */   
+
+   /* -- TEST MEMORY ALLOCATOR */
+
+/* BLOCK-2
+    test_memory(&kernel_mem_pool, 32);
+*/    
 
 
+/* BLOCK-3   
     unsigned long n_info_frames = ContFramePool::needed_info_frames(PROCESS_POOL_SIZE);
-    Console::puts("Number of info frames for process_pool_size: ");
-    Console::puti(n_info_frames);
-    Console::puts("\n");
-/*    unsigned long process_mem_pool_info_frame = kernel_mem_pool.get_frames(n_info_frames);
-    
+    unsigned long process_mem_pool_info_frame = kernel_mem_pool.get_frames(n_info_frames);
+    Console::puts("Process mem pool info frame: "); Console::puti(process_mem_pool_info_frame); Console::puts("\n");  // Expected 513
     ContFramePool process_mem_pool(PROCESS_POOL_START_FRAME,
                                    PROCESS_POOL_SIZE,
                                    process_mem_pool_info_frame,
                                    n_info_frames);
-    
     process_mem_pool.mark_inaccessible(MEM_HOLE_START_FRAME, MEM_HOLE_SIZE);
-*/
-    /* -- MOST OF WHAT WE NEED IS SETUP. THE KERNEL CAN START. */
+    ContFramePool::release_frames(MEM_HOLE_START_FRAME);                  // Should release MEM_HOLE_SIZE number of frames
+*/    
 
-    Console::puts("Hello World!\n");
 
-    /* -- TEST MEMORY ALLOCATOR */
+/* BLOCK-4
+    unsigned long frame1 = kernel_mem_pool.get_frames(2);
+    Console::puts("Frame1: "); Console::puti(frame1); Console::puts("\n");  // Expect 513
+    unsigned long frame2 = kernel_mem_pool.get_frames(3);
+    Console::puts("Frame2: "); Console::puti(frame2); Console::puts("\n");  // Expect 515
+    unsigned long frame3 = kernel_mem_pool.get_frames(7);
+    Console::puts("Frame3: "); Console::puti(frame3); Console::puts("\n");  // Expect 518
+    unsigned long frame4 = kernel_mem_pool.get_frames(9);
+    Console::puts("Frame4: "); Console::puti(frame4); Console::puts("\n");  // Expect 525
     
-//    test_memory(&kernel_mem_pool, 32);
+    ContFramePool::release_frames(frame3);                                  // Expect 7 to be released
+    unsigned long frame5 = kernel_mem_pool.get_frames(15);
+    Console::puts("Frame5: "); Console::puti(frame5); Console::puts("\n");  // Expect 534
+
+    ContFramePool::release_frames(frame4);                                  // Expect 9 to be released
+    unsigned long frame6 = kernel_mem_pool.get_frames(15);
+    Console::puts("Frame6: "); Console::puti(frame6); Console::puts("\n");  // Expect 518 beacuse it is freed now
+*/
+
 
     /* ---- Add code here to test the frame pool implementation. */
-    
-    /* -- NOW LOOP FOREVER */
+   
+
+     /* -- NOW LOOP FOREVER */
     Console::puts("Testing is DONE. We will do nothing forever\n");
     Console::puts("Feel free to turn off the machine now.\n");
 
