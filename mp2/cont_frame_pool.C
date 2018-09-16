@@ -159,7 +159,7 @@ ContFramePool::ContFramePool(unsigned long _base_frame_no,
     }
 
     if (info_frame_no == 0) {
-        unsigned long remaining_info_frames = n_info_frames;
+        unsigned long remaining_info_frames = needed_info_frames(n_frames);
         int counter = 0;
         while (remaining_info_frames > 0) {
             for (int i=0; i < 8; i++) {
