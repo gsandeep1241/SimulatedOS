@@ -152,9 +152,8 @@ ContFramePool::ContFramePool(unsigned long _base_frame_no,
         headmap = (unsigned char *) (info_frame_no * FRAME_SIZE + (n_frames/8));
     }
     
-    
     // Everything ok. Proceed to mark all bits in the bitmap and headmap
-    for(int i=0; i*8 < n_frames; i++) {
+    for(unsigned long i=0; i*8 < n_frames; i++) {
         bitmap[i] = 0xFF;
         headmap[i] = 0xFF;
     }
@@ -207,13 +206,13 @@ unsigned long ContFramePool::get_frames(unsigned int _n_frames)
     // If not found, we continue our check at the outer loop at the
     // position where we left off.
     unsigned int req = _n_frames;
-    int i=0;
+    long i=0;
     while(i < n_frames) {
         int j=0;
         while (j < 8) {
             int num = (0x80 >> j);
             if ((bitmap[i] & (num)) != 0) {
-               int big = i; int small = j;
+               long big = i; int small = j;
                while (req > 0) {
                    if (big >= n_frames) {
                        return 0;
@@ -264,9 +263,9 @@ void ContFramePool::mark_inaccessible(unsigned long _base_frame_no,
     // I have handled it this way because the return type is void and there is no way for
     // letting the caller know if he was successful or not.
     // (of course, I am avoiding assertions and exceptions here)
-    int big = (_base_frame_no-base_frame_no)/8; int small = (_base_frame_no-base_frame_no)%8;
+    unsigned long big = (_base_frame_no-base_frame_no)/8; int small = (_base_frame_no-base_frame_no)%8;
     headmap[big] ^= (0x80 >> small);
-    long req = _n_frames;
+    unsigned long req = _n_frames;
     while (req > 0) {
         if (small == 8) {
                big++; small = 0; continue;
@@ -287,7 +286,7 @@ void ContFramePool::release_frames(unsigned long _first_frame_no)
     
     if (temp == NULL) { assert(false); }
     
-    if (temp ->base_frame_no > _first_frame_no) {
+    if (temp->base_frame_no > _first_frame_no) {
        // the given frame is not part of any framepools
        assert(false);
        return;
@@ -301,7 +300,8 @@ void ContFramePool::release_frames(unsigned long _first_frame_no)
 void ContFramePool::rf(unsigned long _base_frame_no) {
     // Variable "big" represents the byte number
     // Variable "small" represents the bit within the byte
-    int big = (_base_frame_no-base_frame_no)/8; int small = (_base_frame_no-base_frame_no)%8;
+    Console::puts("Base frame number for releasing frames: "); Console::puti(base_frame_no); Console::puts("\n");
+    unsigned long big = (_base_frame_no-base_frame_no)/8; int small = (_base_frame_no-base_frame_no)%8;
     if ((headmap[big] & (0x80 >> small)) != 0) {
        // The given frame is not allocated. 
        assert(false); return;
@@ -329,6 +329,7 @@ void ContFramePool::rf(unsigned long _base_frame_no) {
         bitmap[big] ^= temp; small++;
         num_rel_frames++;
     }
+    Console::puts("Release frames count: "); Console::puti(num_rel_frames); Console::puts("\n");
     n_free_frames += num_rel_frames;
 }
 
@@ -339,8 +340,8 @@ unsigned long ContFramePool::needed_info_frames(unsigned long _n_frames)
     // A frame contains FRAME_SIZE number of bytes..
     // .. FRAME_SIZE*8 number of bits.
     // So, number of frames needed = Ceiling((2*_n_frames)/FRAME_SIZE*8)
-    long a = (_n_frames << 1);
-    long b = (FRAME_SIZE << 3);
+    unsigned long a = (_n_frames << 1);
+    unsigned long b = (FRAME_SIZE << 3);
 
     return (a%b == 0) ? a/b : (a/b)+1;
 }
