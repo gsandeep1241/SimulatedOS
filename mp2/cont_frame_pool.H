@@ -46,14 +46,14 @@ private:
     unsigned long n_frames;           // Size of the frame pool
     unsigned long info_frame_no;      // The location of the first info frame
     unsigned long n_info_frames;      // The number of frames (contiguous) storing management info
-    unsigned long n_free_frames;        // Number of frames left to be allocated
+    unsigned long n_free_frames;      // Number of frames left to be allocated
 
-    unsigned char * bitmap;
-    unsigned char * headmap;
+    unsigned char * bitmap;           // Stores information about whether frame is free or not
+    unsigned char * headmap;          // Stores information about whether frame is a head of seqence of not
 
-    ContFramePool* next;
+    ContFramePool* next;              // Pointer to the next ContFramePool
   
-    void rf(unsigned long _base);
+    void rf(unsigned long _base);     // Releases frames
     
 public:
 

@@ -138,12 +138,14 @@ ContFramePool::ContFramePool(unsigned long _base_frame_no,
     assert ((_n_frames % 8 ) == 0);
     assert(_n_frames <= FRAME_SIZE * 4);
     
+    // Instantiate variables on stack
     base_frame_no = _base_frame_no;
     n_frames = _n_frames;
     info_frame_no = _info_frame_no;
     n_info_frames = _n_info_frames;
     n_free_frames = n_frames;
 
+    // Set up bitmap and headmap
     if (info_frame_no == 0) {
         bitmap = (unsigned char *) (base_frame_no * FRAME_SIZE);
         headmap = (unsigned char *) (base_frame_no * FRAME_SIZE + (n_frames/8));
@@ -158,6 +160,7 @@ ContFramePool::ContFramePool(unsigned long _base_frame_no,
         headmap[i] = 0xFF;
     }
 
+    // Internally managing info frame pool
     if (info_frame_no == 0) {
         unsigned long remaining_info_frames = needed_info_frames(n_frames);
         int counter = 0;
@@ -175,6 +178,7 @@ ContFramePool::ContFramePool(unsigned long _base_frame_no,
     }
     n_free_frames -= n_info_frames;
 
+    // Adding the frame pool to the static frame pools collection
     if (pool == NULL) {
         pool = this;
     } else {
@@ -279,19 +283,22 @@ void ContFramePool::mark_inaccessible(unsigned long _base_frame_no,
 // static
 void ContFramePool::release_frames(unsigned long _first_frame_no)
 {
+    // Iterate the static pools object
     ContFramePool* temp = pool;
     while(temp != NULL && temp->base_frame_no+temp->n_frames <= _first_frame_no) {
       temp = temp->next;
     }
     
+    // Check necessary false conditions
     if (temp == NULL) { assert(false); }
     
     if (temp->base_frame_no > _first_frame_no) {
        // the given frame is not part of any framepools
        assert(false);
        return;
-      }
+    }
 
+    // Call the class method
     temp->rf(_first_frame_no);
 }
 
