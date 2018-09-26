@@ -175,8 +175,8 @@ ContFramePool::ContFramePool(unsigned long _base_frame_no,
             }
             counter++;
         }
+        n_free_frames -= n_info_frames;
     }
-    n_free_frames -= n_info_frames;
 
     // Adding the frame pool to the static frame pools collection
     if (pool == NULL) {
