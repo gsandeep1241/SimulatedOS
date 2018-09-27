@@ -16,14 +16,38 @@ void PageTable::init_paging(ContFramePool * _kernel_mem_pool,
                             ContFramePool * _process_mem_pool,
                             const unsigned long _shared_size)
 {
-   assert(false);
-   Console::puts("Initialized Paging System\n");
+    Console::puts("Initializing Paging system...");
+    kernel_mem_pool = _kernel_mem_pool;
+    process_mem_pool = _process_mem_pool;
+    shared_size = _shared_size;
+    Console::puts("Initialized Paging System\n");
 }
 
 PageTable::PageTable()
 {
-   assert(false);
-   Console::puts("Constructed Page Table object\n");
+    Console::puts("Constructing Page Table object\n");
+    unsigned long dir = kernel_mem_pool->get_frames(1);
+    page_directory = (unsigned long *) (dir * PAGE_SIZE);
+
+    unsigned long pt = kernel_mem_pool->get_frames(1);
+    unsigned long *page_table;
+    page_table = (unsigned long *) (pt * PAGE_SIZE);
+
+    unsigned long address = 0;
+    unsigned long i;
+
+    for(i=0; i < 1024; i++) {
+       page_table[i] = (address | 3);
+       address = address + 4096;
+    }
+    page_directory[0] = pt;
+    page_directory[0] = (page_directory[0] | 3);
+
+    for(i=1; i < 1024; i++) {
+        page_directory[i] = (0 | 2);
+    }
+    
+    Console::puts("Constructed Page Table object\n");
 }
 
 
