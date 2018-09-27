@@ -42,6 +42,18 @@ class ContFramePool {
     
 private:
     /* -- DEFINE YOUR CONT FRAME POOL DATA STRUCTURE(s) HERE. */
+    unsigned long base_frame_no;      // Frame number where this frame pool starts
+    unsigned long n_frames;           // Size of the frame pool
+    unsigned long info_frame_no;      // The location of the first info frame
+    unsigned long n_info_frames;      // The number of frames (contiguous) storing management info
+    unsigned long n_free_frames;      // Number of frames left to be allocated
+
+    unsigned char * bitmap;           // Stores information about whether frame is free or not
+    unsigned char * headmap;          // Stores information about whether frame is a head of seqence of not
+
+    ContFramePool* next;              // Pointer to the next ContFramePool
+  
+    void rf(unsigned long _base);     // Releases frames
     
 public:
 
@@ -57,7 +69,7 @@ public:
      frame pool.
      _base_frame_no: Number of first frame managed by this frame pool.
      _n_frames: Size, in frames, of this frame pool.
-     EXAMPLE: If _base_frame_no is 16 and _nframes is 4, this frame pool manages
+     EXAMPLE: If _base_frame_no is 16 and _n_frames is 4, this frame pool manages
      physical frames numbered 16, 17, 18 and 19.
      _info_frame_no: Number of the first frame that should be used to store the
      management information for the frame pool.
