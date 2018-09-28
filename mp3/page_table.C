@@ -28,7 +28,6 @@ PageTable::PageTable()
     Console::puts("Constructing Page Table object\n");
     unsigned long dir = kernel_mem_pool->get_frames(1);
     page_directory = (unsigned long *) (dir * PAGE_SIZE);
-    Console::puts("dir: "); Console::puti(dir); Console::puts("\n");
 
     unsigned long page_table_frame_no = kernel_mem_pool->get_frames(1);
     unsigned long *page_table;
@@ -72,18 +71,12 @@ void PageTable::handle_fault(REGS * _r)
     unsigned long cr3 = read_cr3();
     unsigned long * page_directory = (unsigned long *) cr3;
     unsigned long temp = read_cr2();
-    Console::puts("CR2: "); Console::puti(temp); Console::puts("xxx");
    
     unsigned long err = _r->err_code;
-//     Console::puts("Err code: "); Console::puti(err); Console::puts("\n");
     
     unsigned long a = (temp & 0xFFC00000) >> 22;
     unsigned long b = (temp & 0x3FF000) >> 12;
     unsigned long c = (temp & 0xFFF);
-
-//     Console::puts("a: "); Console::puti(a); Console::puts("yyyy");
-//     Console::puts("b: "); Console::puti(b); Console::puts("\n");
-//     Console::puts("c: "); Console::puti(c); Console::puts("\n");
 
     if ((page_directory[a] & 1) == 0) {
         unsigned long page_table_frame_no = kernel_mem_pool->get_frames(1);
@@ -93,17 +86,24 @@ void PageTable::handle_fault(REGS * _r)
         page_directory[a] = (page_directory[a] | 3);
        
         unsigned long frame_no = process_mem_pool->get_frames(1);
-        page_table[b] = frame_no;
+//         Console::puts("Frame no: "); Console::puti(frame_no); Console::puts("\n");
+        page_table[b] = frame_no * PAGE_SIZE;
         page_table[b] = (page_table[b] | 3);
         for(int i=0; i < 1024; i++) {
            if (i == b) {continue;}
            page_table[i] = (0 | 2);
         }
     }else {
-        Console::puts("Page directory found. But page table page not found.\n");
-        assert(false);
+        unsigned long d = (page_directory[a] & 0xFFFFF000);
+        unsigned long * page_table = (unsigned long *) d;
+
+        if ((page_table[b] & 1) == 0) {
+            unsigned long frame_no = process_mem_pool->get_frames(1);
+//             Console::puts("Frame no: "); Console::puti(frame_no); Console::puts("\n");
+            page_table[b] = frame_no * PAGE_SIZE;
+            page_table[b] = (page_table[b] | 3);
+        }
     }
-//    assert(false);
-//    Console::puts("handled page fault\n");
+//     Console::puts("Handled page fault\n");
 }
 
