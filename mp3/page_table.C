@@ -46,7 +46,7 @@ PageTable::PageTable()
     for(i=1; i < 1024; i++) {
         page_directory[i] = (0 | 2);
     }
-    
+    current_page_table = this; 
     Console::puts("Constructed Page Table object\n");
 }
 
@@ -86,7 +86,6 @@ void PageTable::handle_fault(REGS * _r)
         page_directory[a] = (page_directory[a] | 3);
        
         unsigned long frame_no = process_mem_pool->get_frames(1);
-//         Console::puts("Frame no: "); Console::puti(frame_no); Console::puts("\n");
         page_table[b] = frame_no * PAGE_SIZE;
         page_table[b] = (page_table[b] | 3);
         for(int i=0; i < 1024; i++) {
@@ -99,10 +98,12 @@ void PageTable::handle_fault(REGS * _r)
 
         if ((page_table[b] & 1) == 0) {
             unsigned long frame_no = process_mem_pool->get_frames(1);
-//             Console::puts("Frame no: "); Console::puti(frame_no); Console::puts("\n");
             page_table[b] = frame_no * PAGE_SIZE;
             page_table[b] = (page_table[b] | 3);
-        }
+        } else {
+            Console::puts("This error scenario is not handled yet.");
+            assert(false);
+	}
     }
 //     Console::puts("Handled page fault\n");
 }
