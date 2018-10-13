@@ -44,6 +44,8 @@ private:
    /* -- DEFINE YOUR VIRTUAL MEMORY POOL DATA STRUCTURE(s) HERE. */
 
 public:
+   VMPool* next;
+   
    VMPool(unsigned long  _base_address,
           unsigned long  _size,
           ContFramePool *_frame_pool,

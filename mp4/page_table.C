@@ -77,7 +77,21 @@ void PageTable::handle_fault(REGS * _r)
 {
     unsigned long cr3 = read_cr3();
     unsigned long temp = read_cr2();
-   
+  
+    VMPool* pool = current_page_table->head;
+    bool leg = false;
+    while (pool != NULL) {
+        if(pool->is_legitimate(temp)) {
+           leg = true; break;
+        }
+    }
+
+    if (!leg) {
+        Console::puts("Aborting page fault handling.\n");
+        assert(false);
+        return;
+    }
+ 
     unsigned long err = _r->err_code;
     
     unsigned long a = (temp & 0xFFC00000) >> 22;
@@ -150,12 +164,28 @@ void PageTable::handle_fault(REGS * _r)
 
 void PageTable::register_pool(VMPool * _vm_pool)
 {
-    assert(false);
+    if (head == NULL) {
+        head = _vm_pool;
+    }else {
+        VMPool* pool = head;
+        while(pool->next != NULL) {
+           pool = pool->next;
+        }
+        pool->next = _vm_pool;
+    }
     Console::puts("registered VM pool\n");
 }
 
 void PageTable::free_page(unsigned long _page_no) {
-    assert(false);
+    unsigned long addr_num = (((_page_no >> 12) << 2) | (0x3FF << 22));
+    unsigned long num = addr_num / PAGE_SIZE;
+    unsigned long* pte_pointer = (unsigned long *) addr_num;
+    *pte_pointer = (0 | 2);
+    process_mem_pool->release_frames(num);
+
+    unsigned long temp = read_cr3();
+    write_cr3(temp);
+
     Console::puts("freed page\n");
 }
 
