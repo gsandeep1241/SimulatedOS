@@ -26,6 +26,7 @@
 #include "machine.H"
 #include "exceptions.H"
 #include "cont_frame_pool.H"
+#include "vm_pool.H"
 
 /*--------------------------------------------------------------------------*/
 /* FORWARDS */
