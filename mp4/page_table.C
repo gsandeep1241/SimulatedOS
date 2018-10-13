@@ -25,11 +25,13 @@ void PageTable::init_paging(ContFramePool * _kernel_mem_pool,
 
 PageTable::PageTable()
 {
+    // Here paging is disabled.
     Console::puts("Constructing Page Table object\n");
-    unsigned long dir = kernel_mem_pool->get_frames(1);
+    unsigned long dir = process_mem_pool->get_frames(1);
+    Console::puts("Dir: "); Console::puti(dir); Console::puts("\n");
     page_directory = (unsigned long *) (dir * PAGE_SIZE);
-
-    unsigned long page_table_frame_no = kernel_mem_pool->get_frames(1);
+    
+    unsigned long page_table_frame_no = process_mem_pool->get_frames(1);
     unsigned long *page_table;
     page_table = (unsigned long *) (page_table_frame_no * PAGE_SIZE);
 
@@ -42,11 +44,15 @@ PageTable::PageTable()
     }
     page_directory[0] = page_table_frame_no * PAGE_SIZE;
     page_directory[0] = (page_directory[0] | 3);
-
-    for(i=1; i < 1024; i++) {
+    
+    i=0;
+    for(i=1; i < 1023; i++) {
         page_directory[i] = (0 | 2);
     }
-    current_page_table = this; 
+    page_directory[i] = dir * PAGE_SIZE;
+    page_directory[i] = (page_directory[i] | 3);
+
+    current_page_table = this;
     Console::puts("Constructed Page Table object\n");
 }
 
@@ -60,6 +66,7 @@ void PageTable::load()
 
 void PageTable::enable_paging()
 {
+    Console::puts("Enabling page table\n");
     unsigned long temp = read_cr0();
     write_cr0(temp | 0x80000000);
     paging_enabled = 1;
@@ -69,7 +76,6 @@ void PageTable::enable_paging()
 void PageTable::handle_fault(REGS * _r)
 {
     unsigned long cr3 = read_cr3();
-    unsigned long * page_directory = (unsigned long *) cr3;
     unsigned long temp = read_cr2();
    
     unsigned long err = _r->err_code;
@@ -78,6 +84,39 @@ void PageTable::handle_fault(REGS * _r)
     unsigned long b = (temp & 0x3FF000) >> 12;
     unsigned long c = (temp & 0xFFF);
 
+    unsigned long* pde = (unsigned long *) ((0xFFFFF << 12) | (a << 2));
+    unsigned long* pte = (unsigned long *) (((b << 2) | (a << 12)) | (0x3FF << 22));
+
+    if ((*pde & 1) == 0) {
+        // need to create page table page
+        unsigned long ptp = process_mem_pool->get_frames(1);
+        *pde = (ptp * PAGE_SIZE);
+        *pde = ((*pde) | 3);
+
+        unsigned long val = 0;
+        for (int i=0; i < 1024; i++) {
+            unsigned long* addr = (unsigned long *) (((val << 2) | (a << 12)) | (0x3FF << 22));
+	    *addr = (0 | 2);
+	    val++;
+        }
+        unsigned long pt = process_mem_pool->get_frames(1);
+        *pte = (pt * PAGE_SIZE);
+        *pte = (*pte | 3);
+
+    }else {
+        // page directory entry is valid. page table entry is not valid
+        if ((*pte & 1) == 0) {
+            unsigned long pt = process_mem_pool->get_frames(1);
+            *pte = (pt * PAGE_SIZE);
+            *pte = ((*pte) | 3);
+        } else {
+            Console::puts("Unknown error.");
+            assert(false);
+        }
+    }
+
+/*
+    // MP3
     if ((page_directory[a] & 1) == 0) {
         unsigned long page_table_frame_no = kernel_mem_pool->get_frames(1);
         unsigned long *page_table;
@@ -105,6 +144,7 @@ void PageTable::handle_fault(REGS * _r)
             assert(false);
 	}
     }
+*/
 //     Console::puts("Handled page fault\n");
 }
 
