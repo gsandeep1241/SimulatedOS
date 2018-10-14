@@ -79,6 +79,7 @@ void PageTable::handle_fault(REGS * _r)
   
     VMPool* pool = current_page_table->head;
     bool leg = false;
+
     while (pool != NULL) {
         if(pool->is_legitimate(temp)) {
            leg = true; break;
@@ -91,7 +92,6 @@ void PageTable::handle_fault(REGS * _r)
         assert(false);
         return;
     }
- 
     unsigned long err = _r->err_code;
     
     unsigned long a = (temp & 0xFFC00000) >> 22;
