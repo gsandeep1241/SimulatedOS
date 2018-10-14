@@ -28,7 +28,6 @@ PageTable::PageTable()
     // Here paging is disabled.
     Console::puts("Constructing Page Table object\n");
     unsigned long dir = process_mem_pool->get_frames(1);
-    Console::puts("Dir: "); Console::puti(dir); Console::puts("\n");
     page_directory = (unsigned long *) (dir * PAGE_SIZE);
     
     unsigned long page_table_frame_no = process_mem_pool->get_frames(1);
@@ -79,10 +78,8 @@ void PageTable::handle_fault(REGS * _r)
     unsigned long temp = read_cr2();
   
     VMPool* pool = current_page_table->head;
-    Console::puts("Page fault handler.\n");
     bool leg = false;
-    Console::puti(temp); Console::puts("\n");
-    /*while (pool != NULL) {
+    while (pool != NULL) {
         if(pool->is_legitimate(temp)) {
            leg = true; break;
         }
@@ -93,7 +90,7 @@ void PageTable::handle_fault(REGS * _r)
         Console::puts("Aborting page fault handling.\n");
         assert(false);
         return;
-    }*/
+    }
  
     unsigned long err = _r->err_code;
     

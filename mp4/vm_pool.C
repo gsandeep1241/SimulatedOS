@@ -54,26 +54,27 @@ VMPool::VMPool(unsigned long  _base_address,
     frame_pool = _frame_pool;
     page_table = _page_table;
     unsigned long addr = _frame_pool->get_frames(1);
-    region = (Region*) (addr * PAGE_SIZE);
-    num_regions = 0;
+    region = (Region*) (_base_address);
+    num_regions = 1;
     page_table->register_pool(this);
     Console::puts("Constructed VMPool object.\n");
 }
 
 unsigned long VMPool::allocate(unsigned long _size) {
     // We handle the easy case where size is always a multiple of page size
-    unsigned round = size/PAGE_SIZE;
+    unsigned round = _size/PAGE_SIZE;
     if (_size%PAGE_SIZE != 0) {
         round++;
         _size = round * PAGE_SIZE;
     }
+    
     assert(_size%PAGE_SIZE == 0);
 
     // We handle only a few regions (few === number of regions that fit in one page)
     assert(num_regions < PAGE_SIZE/sizeof(Region));
     
-    unsigned long start_addr = base_address;
-    if (num_regions != 0) {
+    unsigned long start_addr = base_address + PAGE_SIZE;
+    if (num_regions != 1) {
         start_addr = region[num_regions-1].start_address + region[num_regions-1].size;
     }
     region[num_regions].start_address = start_addr;
@@ -106,7 +107,6 @@ void VMPool::release(unsigned long _start_address) {
     unsigned long num_pages_to_free = region[num_regions].size/PAGE_SIZE;
     unsigned long addr = region[num_regions].start_address;
 
-    Console::puti(num_pages_to_free); Console::puts("\n");
     for (int k=0; k < num_pages_to_free; k++) {
         page_table->free_page(addr);
         addr += PAGE_SIZE;
@@ -116,15 +116,18 @@ void VMPool::release(unsigned long _start_address) {
 }
 
 bool VMPool::is_legitimate(unsigned long _address) {
-    Console::puts("Legitimacy check.\n");
-    /*for (int i=0; i < num_regions; i++) {
+    // The first page used by the region data
+    if (_address >= base_address && _address < base_address + PAGE_SIZE) {
+        return true;
+    }
+    for (int i=1; i < num_regions; i++) {
         if (_address >= region[i].start_address && _address < region[i].start_address + region[i].size) {
            return true;
         }
-    }*/
+    }
     /*if (_address >= base_address && _address < base_address + size) {
         return true;
     }*/
-    return true;
+    return false;
 }
 
