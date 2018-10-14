@@ -177,15 +177,14 @@ void PageTable::register_pool(VMPool * _vm_pool)
 }
 
 void PageTable::free_page(unsigned long _page_no) {
-    unsigned long addr_num = (((_page_no >> 12) << 2) | (0x3FF << 22));
-    unsigned long num = addr_num / PAGE_SIZE;
-    unsigned long* pte_pointer = (unsigned long *) addr_num;
-    *pte_pointer = (0 | 2);
-    // process_mem_pool->release_frames(num);
 
+    unsigned long* pte = (unsigned long *)(((_page_no >> 12) << 2) | (0x3FF << 22));
+    unsigned long num = *pte;
+    num = num / PAGE_SIZE;
+
+    *pte = (0 | 2);
+    process_mem_pool->release_frames(num);
     unsigned long temp = read_cr3();
     write_cr3(temp);
-
-    // Console::puts("freed page\n");
 }
 
