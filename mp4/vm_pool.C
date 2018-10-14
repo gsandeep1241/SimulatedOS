@@ -93,14 +93,17 @@ void VMPool::release(unsigned long _start_address) {
         } 
     }
     assert(region_to_rel != -1);
-    // swap with last region
-    unsigned long temp = region[num_regions-1].start_address;
-    region[num_regions-1].start_address = region[region_to_rel].start_address;
-    region[region_to_rel].start_address = temp;
 
-    temp = region[num_regions-1].size;
-    region[num_regions-1].size = region[region_to_rel].size;
-    region[region_to_rel].size = temp;
+    for(long k=region_to_rel+1; k < num_regions; k++) {
+        // swap with last region
+        unsigned long temp = region[k].start_address;
+        region[k].start_address = region[k-1].start_address;
+        region[k-1].start_address = temp;
+
+        temp = region[k].size;
+        region[k].size = region[k-1].size;
+        region[k-1].size = temp;
+    }
 
     // now act on last region
     num_regions--;
