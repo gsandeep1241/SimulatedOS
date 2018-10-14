@@ -40,6 +40,7 @@ class PageTable;
 /*--------------------------------------------------------------------------*/
 
 struct Region {
+public:
     unsigned long start_address;
     unsigned long size;
 };
@@ -52,9 +53,12 @@ private:
   ContFramePool* frame_pool;
   PageTable* page_table; 
   Region* region;
+  unsigned long num_regions;
 
 public:
    VMPool* next;
+   
+   static const unsigned int PAGE_SIZE  = Machine::PAGE_SIZE; 
    
    VMPool(unsigned long  _base_address,
           unsigned long  _size,
