@@ -39,6 +39,7 @@ class PageTable;
 /* V M  P o o l  */
 /*--------------------------------------------------------------------------*/
 
+// The region struct, an array of which stores the region information for the VMPool
 struct Region {
 public:
     unsigned long start_address;
@@ -48,15 +49,15 @@ public:
 class VMPool { /* Virtual Memory Pool */
 private:
    /* -- DEFINE YOUR VIRTUAL MEMORY POOL DATA STRUCTURE(s) HERE. */
-  unsigned long base_address;
-  unsigned long size;
-  ContFramePool* frame_pool;
-  PageTable* page_table; 
-  Region* region;
-  unsigned long num_regions;
+  unsigned long base_address;      // The start address of the VMPool
+  unsigned long size;              // The size of the VMPool
+  ContFramePool* frame_pool;       // The corresponding frame pool pointer
+  PageTable* page_table;          // The corresponding page_table pointer
+  Region* region;                // A region array
+  unsigned long num_regions;      // Number of regions stored
 
 public:
-   VMPool* next;
+   VMPool* next;                // A next pointer pointing to the next VM pool. Used by the PageTable
    
    static const unsigned int PAGE_SIZE  = Machine::PAGE_SIZE; 
    
