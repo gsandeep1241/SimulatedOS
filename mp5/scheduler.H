@@ -77,6 +77,8 @@ public:
    /* NOTE: We are making all functions virtual. This may come in handy when
             you want to derive RRScheduler from this class. */
 
+   // In the destructor, the head and tail are deleted.
+   // If this were not implemented, it would lead to a memory leak.
    ~Scheduler();
   
    virtual void yield();
