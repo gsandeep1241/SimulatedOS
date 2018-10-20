@@ -46,20 +46,42 @@
 /*--------------------------------------------------------------------------*/
 
 Scheduler::Scheduler() {
-  assert(false);
+  size = 0;
+  head->thread = NULL;
+  head->prev = NULL;
+  head->next = tail;
+  tail->prev = head;
+  tail->next = NULL; 
   Console::puts("Constructed Scheduler.\n");
 }
 
 void Scheduler::yield() {
-  assert(false);
+  if (size == 0) {
+    return;
+  }
+  Node* node = tail->prev;
+  Thread* thread = node->thread;
+  Node* prev = node->prev;
+
+  prev->next = tail;
+  tail->prev = prev;
+
+  Thread::dispatch_to(thread);  
 }
 
 void Scheduler::resume(Thread * _thread) {
-  assert(false);
+  Node* node;
+  node->thread = _thread;
+  
+  Node* next = head->next;
+  head->next = node;
+  node->prev = head;
+  next->prev = node;
+  node->next = next;
 }
 
 void Scheduler::add(Thread * _thread) {
-  assert(false);
+  resume(_thread);
 }
 
 void Scheduler::terminate(Thread * _thread) {
