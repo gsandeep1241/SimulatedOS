@@ -46,32 +46,39 @@
 /*--------------------------------------------------------------------------*/
 
 Scheduler::Scheduler() {
-  head.thread = NULL;
-  head.prev = NULL;
-  head.next = &tail;
-  tail.prev = &head;
-  tail.next = NULL; 
+  head = new Node();
+  tail = new Node();
+  head->prev = NULL;
+  head->next = tail;
+  tail->prev = head;
+  tail->next = NULL; 
   Console::puts("Constructed Scheduler.\n");
 }
 
+Scheduler::~Scheduler() {
+  delete head;
+  delete tail;
+}
+
 void Scheduler::yield() {
-  Node* node = tail.prev;
+  Node* node = tail->prev;
   Thread* thread = node->thread;
   Node* prev = node->prev;
 
-  prev->next = &tail;
-  tail.prev = prev;
+  prev->next = tail;
+  tail->prev = prev;
 
+  delete node;
   Thread::dispatch_to(thread);  
 }
 
 void Scheduler::resume(Thread * _thread) {
-  Node* node;
+  Node* node = new Node();
   node->thread = _thread;
   
-  Node* next = head.next;
-  head.next = node;
-  node->prev = &head;
+  Node* next = head->next;
+  head->next = node;
+  node->prev = head;
   next->prev = node;
   node->next = next;
 }

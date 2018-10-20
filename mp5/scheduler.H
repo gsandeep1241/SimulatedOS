@@ -64,9 +64,8 @@ class Scheduler {
 
   /* The scheduler may need private members... */
 private: 
-  Node head;
-  Node tail;
-  int size;
+  Node* head;
+  Node* tail;
   
 public:
 
@@ -77,6 +76,8 @@ public:
 
    /* NOTE: We are making all functions virtual. This may come in handy when
             you want to derive RRScheduler from this class. */
+
+   ~Scheduler();
   
    virtual void yield();
    /* Called by the currently running thread in order to give up the CPU. 
