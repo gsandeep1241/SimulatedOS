@@ -64,8 +64,8 @@ class Scheduler {
 
   /* The scheduler may need private members... */
 private: 
-  Node* head;
-  Node* tail;
+  Node head;
+  Node tail;
   int size;
   
 public:
