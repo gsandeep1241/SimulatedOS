@@ -88,5 +88,7 @@ void Scheduler::add(Thread * _thread) {
 }
 
 void Scheduler::terminate(Thread * _thread) {
-  assert(false);
+  Console::puts("Termination\n");
+  delete _thread;
+  yield(); 
 }
