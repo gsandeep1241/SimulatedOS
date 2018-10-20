@@ -46,7 +46,6 @@
 /*--------------------------------------------------------------------------*/
 
 Scheduler::Scheduler() {
-  size = 0;
   head->thread = NULL;
   head->prev = NULL;
   head->next = tail;
@@ -56,9 +55,6 @@ Scheduler::Scheduler() {
 }
 
 void Scheduler::yield() {
-  if (size == 0) {
-    return;
-  }
   Node* node = tail->prev;
   Thread* thread = node->thread;
   Node* prev = node->prev;
