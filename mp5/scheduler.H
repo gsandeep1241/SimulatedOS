@@ -54,9 +54,19 @@
 /* SCHEDULER */
 /*--------------------------------------------------------------------------*/
 
+struct Node{
+  Thread* thread;
+  Node* prev;
+  Node* next;
+};
+
 class Scheduler {
 
   /* The scheduler may need private members... */
+private: 
+  Node* head;
+  Node* tail;
+  int size;
   
 public:
 
