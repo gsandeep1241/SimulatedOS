@@ -54,6 +54,7 @@
 /* SCHEDULER */
 /*--------------------------------------------------------------------------*/
 
+// A Node struct that identifies each thread as a Node in the Scheduler
 struct Node{
   Thread* thread;
   Node* prev;
@@ -64,8 +65,9 @@ class Scheduler {
 
   /* The scheduler may need private members... */
 private: 
-  Node* head;
-  Node* tail;
+  Node* head;          // The head of the scheduler queue- is a dummy variable
+  Node* tail;          // The tail of the scheduler queue- is a dummy variable
+// Anything between head and tail is an actual node- inserted using resume and deleted during yield.
   
 public:
 
