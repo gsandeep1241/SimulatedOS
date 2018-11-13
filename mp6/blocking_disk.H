@@ -22,6 +22,7 @@
 /*--------------------------------------------------------------------------*/
 
 #include "simple_disk.H"
+#include "thread.H"
 
 /*--------------------------------------------------------------------------*/
 /* DATA STRUCTURES */ 
@@ -33,7 +34,19 @@
 /* B l o c k i n g D i s k  */
 /*--------------------------------------------------------------------------*/
 
+
+// A Node struct that identifies each thread as a Node in the Scheduler
+struct Node{
+  Thread* thread;
+  Node* prev;
+  Node* next;
+};
+
 class BlockingDisk : public SimpleDisk {
+
+private:
+  Node* head;          // The head of the blocking queue- is a dummy variable
+  Node* tail;          // The tail of the blocking queue- is a dummy variable
 
 protected:
     virtual void wait_until_ready();

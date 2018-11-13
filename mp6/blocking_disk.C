@@ -29,6 +29,13 @@
 
 BlockingDisk::BlockingDisk(DISK_ID _disk_id, unsigned int _size) 
   : SimpleDisk(_disk_id, _size) {
+  head = new Node();
+  tail = new Node();
+  head->prev = NULL;
+  head->next = tail;
+  tail->prev = head;
+  tail->next = NULL; 
+  Console::puts("Constructed BlockingDisk Object.\n");
 }
 
 void BlockingDisk::wait_until_ready() {
