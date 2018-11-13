@@ -66,6 +66,9 @@ public:
    virtual void write(unsigned long _block_no, unsigned char * _buf);
    /* Writes 512 Bytes from the buffer to the given block on the disk. */
 
+   bool ready();
+
+   void resume();
 };
 
 #endif

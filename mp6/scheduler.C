@@ -21,8 +21,10 @@
 #include "console.H"
 #include "utils.H"
 #include "assert.H"
+#include "blocking_disk.H"
 #include "simple_keyboard.H"
 
+extern BlockingDisk* SYSTEM_DISK;
 /*--------------------------------------------------------------------------*/
 /* DATA STRUCTURES */
 /*--------------------------------------------------------------------------*/
@@ -69,6 +71,12 @@ void Scheduler::yield() {
   tail->prev = prev;
 
   delete node;
+
+  // check the blocking queue's first node. If it is ready,
+  // remove it from there and add it by using scheduler add.
+  if (SYSTEM_DISK->ready()) {
+    SYSTEM_DISK->resume();
+  }
   Thread::dispatch_to(thread);  
 }
 
