@@ -72,11 +72,15 @@ void Scheduler::yield() {
 
   delete node;
 
+// ***********BEGIN MODIFICATION*************
+
   // check the blocking queue's first node. If it is ready,
   // remove it from there and add it by using scheduler add.
   if (SYSTEM_DISK->ready()) {
     SYSTEM_DISK->resume();
   }
+// ***********END MODIFICATION*************
+
   Thread::dispatch_to(thread);  
 }
 
