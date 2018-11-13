@@ -180,7 +180,7 @@ void fun2() {
        /* -- Display */
        int i;
        for (i = 0; i < 512; i++) {
-	  Console::putch(buf[i]);
+	  Console::puti(buf[i]);
        }
 
        Console::puts("Writing a block to disk...\n");
