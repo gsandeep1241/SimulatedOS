@@ -34,6 +34,10 @@
 /*--------------------------------------------------------------------------*/
 
 class BlockingDisk : public SimpleDisk {
+
+protected:
+    virtual void wait_until_ready();
+
 public:
    BlockingDisk(DISK_ID _disk_id, unsigned int _size); 
    /* Creates a BlockingDisk device with the given size connected to the 
