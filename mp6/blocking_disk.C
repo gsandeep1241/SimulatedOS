@@ -38,6 +38,12 @@ BlockingDisk::BlockingDisk(DISK_ID _disk_id, unsigned int _size)
   Console::puts("Constructed BlockingDisk Object.\n");
 }
 
+BlockingDisk::~BlockingDisk() {
+  delete head;
+  delete tail;
+}
+
+
 void BlockingDisk::wait_until_ready() {
     while(!is_ready()) { /* wait */ }
 }

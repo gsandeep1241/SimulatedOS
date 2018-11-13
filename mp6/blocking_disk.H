@@ -59,6 +59,10 @@ public:
       In a real system, we would infer this information from the 
       disk controller. */
 
+   // In the destructor, the head and tail are deleted.
+   // If this were not implemented, it would lead to a memory leak.
+   ~BlockingDisk();
+   
    /* DISK OPERATIONS */
 
    virtual void read(unsigned long _block_no, unsigned char * _buf);
