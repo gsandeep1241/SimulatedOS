@@ -22,6 +22,7 @@
 /*--------------------------------------------------------------------------*/
 
 #include "simple_disk.H"
+#include "scheduler.H"
 #include "thread.H"
 
 /*--------------------------------------------------------------------------*/
@@ -34,13 +35,6 @@
 /* B l o c k i n g D i s k  */
 /*--------------------------------------------------------------------------*/
 
-
-// A Node struct that identifies each thread as a Node in the Scheduler
-struct Node{
-  Thread* thread;
-  Node* prev;
-  Node* next;
-};
 
 class BlockingDisk : public SimpleDisk {
 
