@@ -75,7 +75,7 @@ void BlockingDisk::read(unsigned long _block_no, unsigned char * _buf) {
 
 void BlockingDisk::write(unsigned long _block_no, unsigned char * _buf) {
   // -- REPLACE THIS!!!
-  SimpleDisk::read(_block_no, _buf);
+  SimpleDisk::write(_block_no, _buf);
 }
 
 bool BlockingDisk::ready() {
