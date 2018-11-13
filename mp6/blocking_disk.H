@@ -67,8 +67,10 @@ public:
    /* Writes 512 Bytes from the buffer to the given block on the disk. */
 
    bool ready();
+   /* Checks if the blocking queue is empty and disk is ready */
 
    void resume();
+   /* Removes the first node in the blocking queue and adds it to the scheduler queue */
 };
 
 #endif
