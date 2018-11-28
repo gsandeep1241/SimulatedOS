@@ -71,7 +71,19 @@ bool FileSystem::Format(SimpleDisk * _disk, unsigned int _size) {
 
 File * FileSystem::LookupFile(int _file_id) {
     Console::puts("looking up file\n");
-    assert(false);
+    unsigned char inode[512];
+    disk->read(inode_block_num, inode);
+    unsigned int num_files = 0;
+    memcpy(&num_files, inode+4, 4);
+    
+    for(int i=0; i < num_files; i+=24) {
+        int id = 0;
+        memcpy(&id, inode+8+i, 4);
+        if (_file_id == id) {
+            return new File();
+        }
+    }
+    return NULL;
 }
 
 bool FileSystem::CreateFile(int _file_id) {
