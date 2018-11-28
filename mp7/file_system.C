@@ -138,5 +138,46 @@ bool FileSystem::CreateFile(int _file_id) {
 
 bool FileSystem::DeleteFile(int _file_id) {
     Console::puts("deleting file\n");
-    assert(false);
+    unsigned char inode[512];
+    disk->read(inode_block_num, inode);
+    unsigned int num_created = 0;
+    memcpy(&num_created, inode+4, 4);
+    
+    // iterating all created files
+    for(int i=0; i < num_created; i+=16) {
+        int id = 0;
+        memcpy(&id, inode+8+i, 4);
+
+        // id matched
+        if (_file_id == id) {
+            unsigned int is_deleted = 0;
+            memcpy(&is_deleted, inode+8+i+12, 4);
+
+            // ensure this is not deleted
+            if (is_deleted == 1) {
+               continue;
+            }
+
+            // mark it deleted
+            is_deleted = 1;
+            memcpy(inode+8+12+i, &is_deleted, 4);
+
+            // get the starting block num
+            unsigned int block_num = 0;
+            memcpy(&block_num, inode+8+i+8, 4);
+
+            // update free blocks bitmap
+            unsigned char free_blocks[512];
+            disk->read(free_block_num, free_blocks);
+            unsigned int val = 0x0000;
+            unsigned int j = block_num/8;
+            memcpy(free_blocks+j, &val, 4);
+
+            // write both free blocks and inode back to disk
+            disk->write(free_block_num, free_blocks); 
+            disk->write(inode_block_num, inode);
+            return true;           
+        }
+    }
+    return false;
 }
