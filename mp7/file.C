@@ -30,7 +30,6 @@ File::File() {
     /* We will need some arguments for the constructor, maybe pointer to disk
      block with file management and allocation data. */
     Console::puts("In file constructor.\n");
-    assert(false);
 }
 
 /*--------------------------------------------------------------------------*/
