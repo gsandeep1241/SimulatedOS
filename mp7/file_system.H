@@ -52,6 +52,9 @@ private:
      
      SimpleDisk * disk;
      unsigned int size;
+     unsigned int inode_block_num;
+     unsigned int free_block_num;
+     unsigned int num_files;
      
 public:
 

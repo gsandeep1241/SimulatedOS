@@ -29,7 +29,10 @@
 
 FileSystem::FileSystem() {
     Console::puts("In file system constructor.\n");
-    assert(false);
+    inode_block_num = 0;
+    free_block_num = 1;
+    size = 0;
+    num_files = 0;
 }
 
 /*--------------------------------------------------------------------------*/
@@ -38,12 +41,32 @@ FileSystem::FileSystem() {
 
 bool FileSystem::Mount(SimpleDisk * _disk) {
     Console::puts("mounting file system form disk\n");
-    assert(false);
+    disk = _disk;
 }
 
 bool FileSystem::Format(SimpleDisk * _disk, unsigned int _size) {
     Console::puts("formatting disk\n");
-    assert(false);
+    // when we format, we read the inode block and change num files to 0
+    // and size of the file system to _size
+    unsigned char buf[512];
+    _disk->read(0, buf);
+    memcpy(buf, &_size, 4);
+
+    unsigned int number_of_files = 0;
+    memcpy(buf+4, &number_of_files, 4);
+    _disk->write(0, buf);
+   // then we read the free_blocks_block and reset it such that all blocks (except 1 and 2) are 0
+    
+    _disk->read(1, buf);
+    unsigned int first = 0xC000;
+    memcpy(buf, &first, 4);
+
+    // freeing up all disk blocks
+    for (int i=4; i < 512; i+=4) {
+      unsigned int val = 0x0000;
+      memcpy(buf+i, &val, 4);
+    }
+    _disk->write(1, buf);
 }
 
 File * FileSystem::LookupFile(int _file_id) {
