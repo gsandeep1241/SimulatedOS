@@ -28,7 +28,7 @@ extern FileSystem* FILE_SYSTEM;
 /* CONSTRUCTOR */
 /*--------------------------------------------------------------------------*/
 
-File::File(unsigned int start, unsigned int size, unsigned int id) {
+File::File(unsigned int start, unsigned int size, unsigned int id, unsigned int in) {
     /* We will need some arguments for the constructor, maybe pointer to disk
      block with file management and allocation data. */
     Console::puts("In file constructor.\n");
@@ -36,6 +36,7 @@ File::File(unsigned int start, unsigned int size, unsigned int id) {
     size_in_bytes = size;
     current_pos = 0;
     file_id = id;
+    inode_pos = in;
 }
 
 /*--------------------------------------------------------------------------*/
@@ -44,7 +45,6 @@ File::File(unsigned int start, unsigned int size, unsigned int id) {
 
 int File::Read(unsigned int _n, char * _buf) {
     Console::puts("reading from file\n");
-    assert(current_pos < size_in_bytes);
 
     unsigned int rem = _n;
     unsigned int idx = 0;
@@ -77,32 +77,40 @@ int File::Read(unsigned int _n, char * _buf) {
 
 void File::Write(unsigned int _n, const char * _buf) {
     Console::puts("writing to file\n");
-    unsigned int rem = 0;
+    unsigned int rem = _n;
     unsigned int idx = 0;
-    while (rem > 0) {
+    while (rem >= 0) {
         unsigned long block_no = start_block + current_pos/512;
         unsigned char content[512];
         FILE_SYSTEM->disk->read(block_no, content);
         unsigned int pos = current_pos%512;
+        // Console::puts("Rem: "); Console::puti(rem); Console::puts("\n");
+        // Console::puts("Writing pos: "); Console::puti(pos); Console::puts("\n");
+
         if (rem > 512-pos) {
           // read these; reduce rem; advance current_pos
+          // Console::puts("Stage1\n");
           memcpy(content+pos, _buf+idx, 512-pos);
           current_pos += (512-pos); idx += (512-pos); rem -= (512-pos);
           FILE_SYSTEM->disk->write(block_no, content);
         } else {
-          if ((block_no-start_block)*512 + pos + rem >= size_in_bytes) {
-             // just read till end of file and return
-             unsigned int val = size_in_bytes - (block_no-start_block)*512 - pos;
-             memcpy(content+pos, _buf+idx, val);
-             rem -= val; current_pos += val;
-             FILE_SYSTEM->disk->write(block_no, content);
-             return;
-          } else {
-             memcpy(content+pos, _buf+idx, rem);
-             rem = 0; current_pos += rem;
-             FILE_SYSTEM->disk->write(block_no, content);
-             return;
+           // Console::puts("Stage2\n");
+           int val = rem;
+           memcpy(content+pos, _buf+idx, rem);
+           rem = 0; current_pos += rem;
+           FILE_SYSTEM->disk->write(block_no, content);
+           unsigned char inode[512];
+           FILE_SYSTEM->disk->read(0, inode);
+           unsigned int size_fin = (block_no-start_block)*512 + pos + val; 
+          if (size_fin > size_in_bytes) {
+             // Console::puts("Stage3\n");
+             size_in_bytes = size_fin;
+             unsigned char inode[512];
+             FILE_SYSTEM->disk->read(0, inode);
+             memcpy(inode+inode_pos+4, &size_in_bytes, 4);
+             FILE_SYSTEM->disk->write(0, inode);
           }
+          return;
         }
     }    
 }

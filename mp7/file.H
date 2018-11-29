@@ -41,11 +41,12 @@ private:
     unsigned int size_in_bytes;
     unsigned long current_pos;
     unsigned int file_id;
+    unsigned int inode_pos;
     /* -- maybe it would be good to have a reference to the file system? */
     
 public:
 
-    File(unsigned int start_block, unsigned int size, unsigned int file_id);
+    File(unsigned int start_block, unsigned int size, unsigned int file_id, unsigned int inode_p);
     /* Constructor for the file handle. Set the ’current
      position’ to be at the beginning of the file. */
     

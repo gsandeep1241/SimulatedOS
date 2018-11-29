@@ -98,7 +98,7 @@ File * FileSystem::LookupFile(int _file_id) {
 
             unsigned int file_size = 0;
             memcpy(&file_size, inode+8+i+4, 4);
-            return new File(block_number, file_size, _file_id);
+            return new File(block_number, file_size, _file_id, 8+i);
         }
     }
     return NULL;
@@ -112,7 +112,7 @@ bool FileSystem::CreateFile(int _file_id) {
     memcpy(&num_created, inode+4, 4);
 
     unsigned char free_blocks[512];
-    unsigned int block_num = -1;
+    unsigned int block_num = 0;
     disk->read(1, free_blocks);
 
     // finding a free disk block
@@ -139,7 +139,7 @@ bool FileSystem::CreateFile(int _file_id) {
          return true;
        }
     }
-    return false;
+    return true;
 }
 
 bool FileSystem::DeleteFile(int _file_id) {
