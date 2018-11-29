@@ -148,6 +148,7 @@ bool FileSystem::DeleteFile(int _file_id) {
     disk->read(0, inode);
     unsigned int num_created = 0;
     memcpy(&num_created, inode+4, 4);
+    unsigned char free_blocks[512];
     
     // iterating all created files
     for(int i=0; i < num_created*16; i+=16) {
@@ -173,7 +174,6 @@ bool FileSystem::DeleteFile(int _file_id) {
             memcpy(&block_num, inode+8+i+8, 4);
 
             // update free blocks bitmap
-            unsigned char free_blocks[512];
             disk->read(1, free_blocks);
             unsigned int val = 0x0000;
             unsigned int j = block_num/8;

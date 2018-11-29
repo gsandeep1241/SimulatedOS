@@ -99,8 +99,6 @@ void File::Write(unsigned int _n, const char * _buf) {
            memcpy(content+pos, _buf+idx, rem);
            rem = 0; current_pos += rem;
            FILE_SYSTEM->disk->write(block_no, content);
-           unsigned char inode[512];
-           FILE_SYSTEM->disk->read(0, inode);
            unsigned int size_fin = (block_no-start_block)*512 + pos + val; 
           if (size_fin > size_in_bytes) {
              // Console::puts("Stage3\n");
