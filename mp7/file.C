@@ -77,7 +77,34 @@ int File::Read(unsigned int _n, char * _buf) {
 
 void File::Write(unsigned int _n, const char * _buf) {
     Console::puts("writing to file\n");
-    
+    unsigned int rem = 0;
+    unsigned int idx = 0;
+    while (rem > 0) {
+        unsigned long block_no = start_block + current_pos/512;
+        unsigned char content[512];
+        FILE_SYSTEM->disk->read(block_no, content);
+        unsigned int pos = current_pos%512;
+        if (rem > 512-pos) {
+          // read these; reduce rem; advance current_pos
+          memcpy(content+pos, _buf+idx, 512-pos);
+          current_pos += (512-pos); idx += (512-pos); rem -= (512-pos);
+          FILE_SYSTEM->disk->write(block_no, content);
+        } else {
+          if ((block_no-start_block)*512 + pos + rem >= size_in_bytes) {
+             // just read till end of file and return
+             unsigned int val = size_in_bytes - (block_no-start_block)*512 - pos;
+             memcpy(content+pos, _buf+idx, val);
+             rem -= val; current_pos += val;
+             FILE_SYSTEM->disk->write(block_no, content);
+             return;
+          } else {
+             memcpy(content+pos, _buf+idx, rem);
+             rem = 0; current_pos += rem;
+             FILE_SYSTEM->disk->write(block_no, content);
+             return;
+          }
+        }
+    }    
 }
 
 void File::Reset() {
