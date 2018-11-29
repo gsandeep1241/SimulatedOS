@@ -77,22 +77,23 @@ int File::Read(unsigned int _n, char * _buf) {
 
 void File::Write(unsigned int _n, const char * _buf) {
     Console::puts("writing to file\n");
-    assert(false);
+    
 }
 
 void File::Reset() {
     Console::puts("reset current position in file\n");
-    assert(false);
-    
+    current_pos = 0;
 }
 
 void File::Rewrite() {
     Console::puts("erase content of file\n");
-    assert(false);
+    current_pos = 0;
+    size_in_bytes = 0;
 }
 
 
 bool File::EoF() {
     Console::puts("testing end-of-file condition\n");
-    assert(false);
+    if (size_in_bytes == 0) return (current_pos == 0);
+    return current_pos == size_in_bytes - 1;
 }
