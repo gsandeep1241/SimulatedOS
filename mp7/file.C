@@ -21,15 +21,21 @@
 #include "assert.H"
 #include "console.H"
 #include "file.H"
+#include "file_system.H"
 
+extern FileSystem* FILE_SYSTEM;
 /*--------------------------------------------------------------------------*/
 /* CONSTRUCTOR */
 /*--------------------------------------------------------------------------*/
 
-File::File() {
+File::File(unsigned int start, unsigned int size, unsigned int id) {
     /* We will need some arguments for the constructor, maybe pointer to disk
      block with file management and allocation data. */
     Console::puts("In file constructor.\n");
+    start_block = start;
+    size_in_bytes = size;
+    current_pos = 0;
+    file_id = id;
 }
 
 /*--------------------------------------------------------------------------*/
@@ -38,7 +44,34 @@ File::File() {
 
 int File::Read(unsigned int _n, char * _buf) {
     Console::puts("reading from file\n");
-    assert(false);
+    assert(current_pos < size_in_bytes);
+
+    unsigned int rem = _n;
+    unsigned int idx = 0;
+    while (rem > 0) {
+        unsigned long block_no = start_block + current_pos/512;
+        unsigned char content[512];
+        FILE_SYSTEM->disk->read(block_no, content);
+        unsigned int pos = current_pos%512;
+        if (rem > 512-pos) {
+          // read these; reduce rem; advance current_pos
+          memcpy(_buf+idx, content+pos, 512-pos);
+          current_pos += (512-pos); idx += (512-pos); rem -= (512-pos);
+        } else {
+          if ((block_no-start_block)*512 + pos + rem >= size_in_bytes) {
+             // just read till end of file and return
+             unsigned int val = size_in_bytes - (block_no-start_block)*512 - pos;
+             memcpy(_buf+idx, content+pos, val);
+             rem -= val; current_pos += val;
+             return _n - rem;
+          } else {
+             memcpy(_buf+idx, content+pos, rem);
+             rem = 0; current_pos += rem;
+             return _n;
+          }
+        }
+
+    }
 }
 
 

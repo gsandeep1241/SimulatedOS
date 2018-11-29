@@ -50,7 +50,6 @@ friend class File; /* -- not sure if we need this; feel free to delete */
 private:
      /* -- DEFINE YOUR FILE SYSTEM DATA STRUCTURES HERE. */
      
-     SimpleDisk * disk;
      unsigned int size;
      unsigned int inode_block_num;
      unsigned int free_block_num;
@@ -58,6 +57,7 @@ private:
      
 public:
 
+    SimpleDisk * disk;
     FileSystem();
     /* Just initializes local data structures. Does not connect to disk yet. */
     

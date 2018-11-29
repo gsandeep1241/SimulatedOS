@@ -93,7 +93,12 @@ File * FileSystem::LookupFile(int _file_id) {
             if (is_deleted == 1) {
                continue;
             }
-            return new File();
+            unsigned int block_number = 0;
+            memcpy(&block_number, inode+8+i+8, 4);
+
+            unsigned int file_size = 0;
+            memcpy(&file_size, inode+8+i+4, 4);
+            return new File(block_number, file_size, _file_id);
         }
     }
     return NULL;
