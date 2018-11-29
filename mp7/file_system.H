@@ -50,11 +50,6 @@ friend class File; /* -- not sure if we need this; feel free to delete */
 private:
      /* -- DEFINE YOUR FILE SYSTEM DATA STRUCTURES HERE. */
      
-     unsigned int size;
-     unsigned int inode_block_num;
-     unsigned int free_block_num;
-     unsigned int num_files;
-     
 public:
 
     SimpleDisk * disk;

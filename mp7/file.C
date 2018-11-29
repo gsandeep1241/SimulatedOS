@@ -108,6 +108,7 @@ void File::Write(unsigned int _n, const char * _buf) {
              memcpy(inode+inode_pos+4, &size_in_bytes, 4);
              FILE_SYSTEM->disk->write(0, inode);
           }
+          assert(size_in_bytes < 32*512); 
           return;
         }
     }    
@@ -122,6 +123,10 @@ void File::Rewrite() {
     Console::puts("erase content of file\n");
     current_pos = 0;
     size_in_bytes = 0;
+    unsigned char buf[512];
+    FILE_SYSTEM->disk->read(0, buf);
+    memcpy(buf+inode_pos+4, &size_in_bytes, 4);
+    FILE_SYSTEM->disk->write(0, buf);
 }
 
 

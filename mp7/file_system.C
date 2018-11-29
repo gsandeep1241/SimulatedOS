@@ -29,10 +29,6 @@
 
 FileSystem::FileSystem() {
     Console::puts("In file system constructor.\n");
-    inode_block_num = 0;
-    free_block_num = 1;
-    size = 0;
-    num_files = 0;
 }
 
 /*--------------------------------------------------------------------------*/
@@ -111,6 +107,9 @@ bool FileSystem::CreateFile(int _file_id) {
     unsigned int num_created = 0;
     memcpy(&num_created, inode+4, 4);
 
+    unsigned int fs_size = 0;
+    memcpy(&fs_size, inode, 4);
+    
     unsigned char free_blocks[512];
     unsigned int block_num = 0;
     disk->read(1, free_blocks);
@@ -127,6 +126,7 @@ bool FileSystem::CreateFile(int _file_id) {
 
     // finding a free disk block
     for(int i=2; i+8 < 512; i+=8) {
+       assert(i*8 < fs_size);
        unsigned int val = 0;
        memcpy(&val, free_blocks+i, 4);
        if ((val & 0x8000) == 0) {
