@@ -115,6 +115,16 @@ bool FileSystem::CreateFile(int _file_id) {
     unsigned int block_num = 0;
     disk->read(1, free_blocks);
 
+
+    int k=0;
+    for (k=0; k < num_created*16; k+=16) {
+        int is_deleted = 0;
+        memcpy(&is_deleted, inode+8+k+12, 4);
+        if (is_deleted == 1) {
+           break;
+        }
+    }
+
     // finding a free disk block
     for(int i=2; i+8 < 512; i+=8) {
        unsigned int val = 0;
@@ -126,10 +136,10 @@ bool FileSystem::CreateFile(int _file_id) {
          // writing to the inode block
          int file_size = 0;
          int is_deleted = 0;
-         memcpy(inode+8+num_created*16, &_file_id, 4);
-         memcpy(inode+8+num_created*16 + 4, &file_size, 4);
-         memcpy(inode+8+num_created*16 + 8, &block_num, 4);
-         memcpy(inode+8+num_created*16 + 12, &is_deleted, 4);
+         memcpy(inode+8+k, &_file_id, 4);
+         memcpy(inode+8+k + 4, &file_size, 4);
+         memcpy(inode+8+k + 8, &block_num, 4);
+         memcpy(inode+8+k + 12, &is_deleted, 4);
          
          num_created++;
          memcpy(inode+4, &num_created, 4);
@@ -139,7 +149,7 @@ bool FileSystem::CreateFile(int _file_id) {
          return true;
        }
     }
-    return true;
+    return false;
 }
 
 bool FileSystem::DeleteFile(int _file_id) {
