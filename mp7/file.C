@@ -133,5 +133,5 @@ void File::Rewrite() {
 bool File::EoF() {
     Console::puts("testing end-of-file condition\n");
     if (size_in_bytes == 0) return (current_pos == 0);
-    return current_pos == size_in_bytes - 1;
+    return current_pos == size_in_bytes;
 }
